@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\VehicleStatusController;
 use App\Http\Controllers\FuelReportController;
+use App\Http\Controllers\VehicleController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,6 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/secretarias', [SecretariatController::class, 'index'])->name('secretariats.index');
     Route::get('/vehicles/status', [VehicleStatusController::class, 'index'])->name('vehicles.status');
     Route::get('/reports/fuel-analysis', [FuelReportController::class, 'index'])->name('reports.fuel-analysis');
+    Route::resource('vehicles', VehicleController::class);
 
 });
 

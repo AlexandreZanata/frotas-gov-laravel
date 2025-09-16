@@ -45,15 +45,16 @@ class VehicleController extends Controller
      */
     public function store(Request $request)
     {
+        // Validação ATUALIZADA
         $validatedData = $request->validate([
             'brand' => 'required|string|max:100',
             'model' => 'required|string|max:100',
+            'year' => 'required|integer|digits:4',
             'plate' => 'required|string|max:10|unique:vehicles,plate',
             'renavam' => 'required|string|max:11|unique:vehicles,renavam',
-            'year' => 'required|integer|digits:4|min:1950|max:' . (date('Y') + 1),
             'current_km' => 'required|integer|min:0',
-            'tank_capacity' => 'required|numeric|min:0',
             'fuel_type' => 'required|string|max:50',
+            'tank_capacity' => 'required|numeric|min:0',
             'category_id' => 'required|exists:vehicle_categories,id',
             'current_secretariat_id' => 'required|exists:secretariats,id',
             'current_department_id' => 'nullable|exists:departments,id',
@@ -105,15 +106,16 @@ class VehicleController extends Controller
      */
     public function update(Request $request, Vehicle $vehicle)
     {
+        // Validação ATUALIZADA
         $validatedData = $request->validate([
             'brand' => 'required|string|max:100',
             'model' => 'required|string|max:100',
+            'year' => 'required|integer|digits:4',
             'plate' => ['required', 'string', 'max:10', Rule::unique('vehicles')->ignore($vehicle->id)],
             'renavam' => ['required', 'string', 'max:11', Rule::unique('vehicles')->ignore($vehicle->id)],
-            'year' => 'required|integer|digits:4|min:1950|max:' . (date('Y') + 1),
             'current_km' => 'required|integer|min:0',
-            'tank_capacity' => 'required|numeric|min:0',
             'fuel_type' => 'required|string|max:50',
+            'tank_capacity' => 'required|numeric|min:0',
             'category_id' => 'required|exists:vehicle_categories,id',
             'current_secretariat_id' => 'required|exists:secretariats,id',
             'current_department_id' => 'nullable|exists:departments,id',
@@ -137,7 +139,7 @@ class VehicleController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     * Exclui um veículo do banco de dados.
+     * Exclui um veículophp do banco de dados.
      */
     public function destroy(Vehicle $vehicle)
     {

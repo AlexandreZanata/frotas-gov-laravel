@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
+
 class DashboardController extends Controller
 {
     public function index(): View
@@ -30,10 +31,12 @@ class DashboardController extends Controller
 
         // --- DADOS PARA OS GRÁFICOS ---
         $runsByVehicleQuery = ($user->role_id == 1) ? Run::query() : Run::where('secretariat_id', $secretariatId);
+
+        // QUERY CORRIGIDA: Usa CONCAT para juntar brand e model no lugar de 'name'
         $runsByVehicleData = $runsByVehicleQuery
             ->join('vehicles', 'runs.vehicle_id', '=', 'vehicles.id')
-            ->select('vehicles.name', DB::raw('count(runs.id) as run_count'))
-            ->groupBy('vehicles.name')
+            ->select(DB::raw("CONCAT(vehicles.brand, ' ', vehicles.model) as vehicle_name"), DB::raw('count(runs.id) as run_count'))
+            ->groupBy('vehicle_name')
             ->orderBy('run_count', 'desc')
             ->take(10)
             ->get();

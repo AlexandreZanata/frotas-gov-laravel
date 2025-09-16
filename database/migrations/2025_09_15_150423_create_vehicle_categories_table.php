@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('layout_key', 50)->default('car_2x2')->comment('Chave para o diagrama de pneus');
             $table->integer('oil_change_km')->default(10000);
             $table->integer('oil_change_days')->default(180);
+            $table->timestamps();
         });
     }
+
     /**
      * Reverse the migrations.
      */

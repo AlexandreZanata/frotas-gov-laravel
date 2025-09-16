@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\VehicleStatusController;
 use App\Http\Controllers\FuelReportController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\VehicleCategoryController;
+use App\Http\Controllers\AuditLogController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -21,6 +23,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/vehicles/status', [VehicleStatusController::class, 'index'])->name('vehicles.status');
     Route::get('/reports/fuel-analysis', [FuelReportController::class, 'index'])->name('reports.fuel-analysis');
     Route::resource('vehicles', VehicleController::class);
+    Route::resource('vehicle-categories', VehicleCategoryController::class);
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
 
 });
 

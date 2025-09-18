@@ -8,23 +8,21 @@ use App\Models\Secretariat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use App\Models\VehicleStatus;
+
 
 class VehicleController extends Controller
 {
     /**
      * Display a listing of the resource.
-     * Exibe uma lista paginada de todos os veículos.
      */
     public function index()
     {
-        // Busca os veículos com seus relacionamentos para evitar N+1 queries
+        // Busca os veículos com seus relacionamentos
         $vehicles = Vehicle::with(['category', 'secretariat'])->latest()->paginate(15);
 
-        // Retorna a view de listagem (você precisará criar o arquivo /resources/views/vehicles/index.blade.php)
-        // return view('vehicles.index', compact('vehicles'));
-
-        // Por enquanto, vamos redirecionar para o dashboard para não dar erro
-        return redirect()->route('dashboard')->with('info', 'Página de listagem de veículos em construção.');
+        // Retorna a view de listagem
+        return view('vehicles.index', compact('vehicles'));
     }
 
     /**
@@ -35,32 +33,20 @@ class VehicleController extends Controller
     {
         $categories = VehicleCategory::orderBy('name')->get();
         $secretariats = Secretariat::orderBy('name')->get();
+        // Adicione departments se necessário no formulário
+        // $departments = Department::orderBy('name')->get();
 
         return view('vehicles.create', compact('categories', 'secretariats'));
     }
+
 
     /**
      * Store a newly created resource in storage.
      * Salva o novo veículo no banco de dados.
      */
-    public function store(Request $request)
+    public function store(VehicleRequest $request) // **Use o VehicleRequest aqui**
     {
-        // Validação ATUALIZADA
-        $validatedData = $request->validate([
-            'brand' => 'required|string|max:100',
-            'model' => 'required|string|max:100',
-            'year' => 'required|integer|digits:4',
-            'plate' => 'required|string|max:10|unique:vehicles,plate',
-            'renavam' => 'required|string|max:11|unique:vehicles,renavam',
-            'current_km' => 'required|integer|min:0',
-            'fuel_type' => 'required|string|max:50',
-            'tank_capacity' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:vehicle_categories,id',
-            'current_secretariat_id' => 'required|exists:secretariats,id',
-            'current_department_id' => 'nullable|exists:departments,id',
-            'status' => 'required|string|in:Disponível,Em uso,Manutenção,Inativo',
-            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
-        ]);
+        $validatedData = $request->validated();
 
         if ($request->hasFile('document')) {
             $path = $request->file('document')->store('vehicle_documents', 'public');
@@ -92,36 +78,27 @@ class VehicleController extends Controller
      */
     public function edit(Vehicle $vehicle)
     {
+        // 2. BUSCA OS DADOS DE TODAS AS TABELAS RELACIONADAS
+        $statuses = VehicleStatus::orderBy('name')->get(); // <-- ESTA É A LINHA QUE FALTAVA
         $categories = VehicleCategory::orderBy('name')->get();
         $secretariats = Secretariat::orderBy('name')->get();
 
-        // Retorna a view de edição (você precisará criar o arquivo /resources/views/vehicles/edit.blade.php)
-        // return view('vehicles.edit', compact('vehicle', 'categories', 'secretariats'));
-        return redirect()->route('dashboard')->with('info', 'Página de edição de veículo em construção.');
+        // 3. AGORA, TODAS AS VARIÁVEIS EXISTEM E PODEM SER PASSADAS PARA A VIEW
+        return view('vehicles.edit', compact(
+            'vehicle',
+            'statuses',
+            'categories',
+            'secretariats'
+        ));
     }
 
     /**
      * Update the specified resource in storage.
      * Atualiza os dados de um veículo no banco de dados.
      */
-    public function update(Request $request, Vehicle $vehicle)
+    public function update(VehicleRequest $request, Vehicle $vehicle) // **Use o VehicleRequest aqui também**
     {
-        // Validação ATUALIZADA
-        $validatedData = $request->validate([
-            'brand' => 'required|string|max:100',
-            'model' => 'required|string|max:100',
-            'year' => 'required|integer|digits:4',
-            'plate' => ['required', 'string', 'max:10', Rule::unique('vehicles')->ignore($vehicle->id)],
-            'renavam' => ['required', 'string', 'max:11', Rule::unique('vehicles')->ignore($vehicle->id)],
-            'current_km' => 'required|integer|min:0',
-            'fuel_type' => 'required|string|max:50',
-            'tank_capacity' => 'required|numeric|min:0',
-            'category_id' => 'required|exists:vehicle_categories,id',
-            'current_secretariat_id' => 'required|exists:secretariats,id',
-            'current_department_id' => 'nullable|exists:departments,id',
-            'status' => 'required|string|in:Disponível,Em uso,Manutenção,Inativo',
-            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
-        ]);
+        $validatedData = $request->validated();
 
         if ($request->hasFile('document')) {
             // Se já existe um documento, apaga o antigo antes de salvar o novo

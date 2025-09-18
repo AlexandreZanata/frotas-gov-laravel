@@ -20,4 +20,9 @@ class VehicleCategory extends Model
         'oil_change_km',
         'oil_change_days',
     ];
+
+    public function vehicles()
+    {
+        return $this->hasMany(Vehicle::class, 'vehicle_category_id');
+    }
 }

@@ -23,8 +23,8 @@
             <span class="mx-3">Painel</span>
         </a>
 
-        <a href="#"
-           class="flex items-center mt-4 py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700">
+        <a href="{{ route('diario.index') }}"
+           class="flex items-center mt-4 py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 {{ request()->routeIs('diario.*') ? 'bg-gray-200 dark:bg-gray-700' : '' }}">
             <i class="fas fa-book w-6"></i>
             <span class="mx-3">Diário de Bordo</span>
         </a>
@@ -41,9 +41,13 @@
                     <span><i class="fas" :class="{ 'fa-chevron-down': !open, 'fa-chevron-up': open }"></i></span>
                 </button>
                 <div x-show="open" x-transition class="bg-gray-100 dark:bg-gray-900">
+                    <a href="{{ route('vehicles.index') }}"
+                       class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicles.index', 'vehicles.edit') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">
+                        Gerenciar Frota
+                    </a>
                     <a href="{{ route('vehicles.create') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicles.create') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">Cadastro de Veículos</a>
-                    <a href="{{ route('vehicle-categories.index') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicle-categories') ? 'bg-gray-300 dark:hover:bg-gray-600' : '' }}">Gerenciar Categorias</a>
-                    <a href="{{ route('vehicles.index') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicles.index') ? 'bg-gray-300 dark:hover:bg-gray-600' : '' }}">Controle de Status</a>
+                    <a href="{{ route('vehicle-categories.index') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicle-categories.*')  ? 'bg-gray-300 dark:bg-gray-600' : '' }}">Gerenciar Categorias</a>
+
                 </div>
             </div>
         @endif

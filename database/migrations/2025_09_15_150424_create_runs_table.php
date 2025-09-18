@@ -13,17 +13,21 @@ return new class extends Migration
     {
         Schema::create('runs', function (Blueprint $table) {
             $table->id();
+            // REMOVEMOS a foreign key para 'checklists' daqui.
+
             $table->foreignId('vehicle_id')->constrained('vehicles');
             $table->foreignId('driver_id')->constrained('users');
             $table->foreignId('secretariat_id')->nullable()->constrained('secretariats')->onDelete('set null');
 
             $table->unsignedInteger('start_km')->nullable();
             $table->unsignedInteger('end_km')->nullable();
-            $table->dateTime('start_time');
+            $table->dateTime('start_time')->nullable();
             $table->dateTime('end_time')->nullable();
             $table->string('destination')->nullable();
             $table->string('stop_point')->nullable();
-            $table->enum('status', ['in_progress', 'completed'])->default('in_progress');
+
+            // Coluna status com todos os valores necessários
+            $table->enum('status', ['pending_start', 'in_progress', 'completed'])->default('pending_start');
         });
     }
 

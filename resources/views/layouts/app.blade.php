@@ -84,5 +84,6 @@
         setTimeout(() => loader.style.display = 'none', 500);
     });
 </script>
+@stack('scripts')
 </body>
 </html>

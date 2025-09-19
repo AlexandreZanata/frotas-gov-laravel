@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Hash;
 
 class User extends Authenticatable
 {
@@ -55,5 +55,31 @@ class User extends Authenticatable
             'password' => 'hashed',
             'cnh_expiry_date' => 'date',
         ];
+    }
+
+    // --- RELACIONAMENTOS ADICIONADOS ---
+
+    /**
+     * Define o relacionamento: um Usuário (User) pertence a um Perfil (Role).
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Define o relacionamento: um Usuário (User) pertence a uma Secretaria (Secretariat).
+     */
+    public function secretariat(): BelongsTo
+    {
+        return $this->belongsTo(Secretariat::class);
+    }
+
+    /**
+     * Define o relacionamento: um Usuário (User) pertence a um Departamento (Department).
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 }

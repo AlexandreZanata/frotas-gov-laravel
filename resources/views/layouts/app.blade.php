@@ -85,5 +85,6 @@
     });
 </script>
 @stack('scripts')
+<x-confirm-modal />
 </body>
 </html>

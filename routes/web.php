@@ -27,9 +27,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('vehicles', VehicleController::class);
     Route::resource('vehicle-categories', VehicleCategoryController::class);
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    // Adicione esta rota, de preferência dentro do grupo de middleware 'auth'
+    Route::get('/search', [\App\Http\Controllers\SearchController::class, 'search'])->name('ajax.search');
 
     // ===================================================================
-    // GRUPO DE ROTAS DO DIÁRIO DE BORDO (VERSÃO CORRIGIDA E FINAL)
+    // GRUPO DE ROTAS DO DIÁRIO DE BORDO
     // ===================================================================
     Route::prefix('diario-de-bordo')->name('diario.')->group(function () {
         // Ponto de entrada que redireciona para a etapa correta
@@ -61,11 +63,30 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/vehicles/search', [DiarioBordoController::class, 'searchVehicles'])->name('api.vehicles.search');
 });
 
+/**
+ * ===================================================================
+ * ROTAS ADMINISTRATIVAS (Acesso restrito a role_id = 1)
+ * ===================================================================
+ */
 Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+
+    // --- Gerenciamento de Usuários ---
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
-    Route::patch('users/{user}/reset-password', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
-    Route::resource('default-passwords', \App\Http\Controllers\Admin\DefaultPasswordController::class);
+    Route::patch('users/{user}/send-reset-link', [\App\Http\Controllers\Admin\UserController::class, 'sendPasswordResetLink'])->name('users.send-reset-link');
+
+    // --- Histórico de Alterações (Auditoria) ---
+    Route::get('audit-logs', [\App\Http\Controllers\Admin\AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    // --- Senhas Padrão ---
+    Route::resource('default-passwords', \App\Http\Controllers\Admin\DefaultPasswordController::class)->except(['show']);
+
+    // --- Backups de Usuários Excluídos ---
+    Route::get('backups', [\App\Http\Controllers\Admin\UserDataBackupController::class, 'index'])->name('backups.index');
+    Route::get('backups/{backup}/download', [\App\Http\Controllers\Admin\UserDataBackupController::class, 'download'])->name('backups.download');
+
 });
+
+
 
 
 require __DIR__.'/auth.php';

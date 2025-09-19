@@ -2,16 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Vehicle;
 use Illuminate\Http\Request;
-use Illuminate\View\View; // Importe a classe View
 
 class VehicleStatusController extends Controller
 {
-    // Adicione este método
-    public function index(): View
+    public function index(Request $request)
     {
-        // Por enquanto, vamos apenas retornar uma view simples.
-        // A lógica de buscar os veículos do banco de dados virá depois.
-        return view('vehicles.status');
+        $query = Vehicle::query();
+
+        // Funcionalidade de busca (CORRIGIDA)
+        if ($request->filled('search')) { // Usar filled() é um pouco mais seguro
+            $searchTerm = $request->input('search');
+
+            // Agrupa as condições de busca para evitar conflitos com outros WHERES
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('brand', 'like', "%{$searchTerm}%")
+                    ->orWhere('model', 'like', "%{$searchTerm}%")
+                    ->orWhere('plate', 'like', "%{$searchTerm}%")
+                    ->orWhere('renavam', 'like', "%{$searchTerm}%")
+                    ->orWhere('prefix', 'like', "%{$searchTerm}%")
+                    ->orWhere('chassi', 'like', "%{$searchTerm}%"); // <-- CHASSI ADICIONADO AQUI
+            });
+        }
+
+        $vehicles = $query->paginate(10);
+
+        return view('vehicles.status', compact('vehicles'));
     }
 }

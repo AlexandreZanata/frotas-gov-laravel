@@ -61,5 +61,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/vehicles/search', [DiarioBordoController::class, 'searchVehicles'])->name('api.vehicles.search');
 });
 
+Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    Route::patch('users/{user}/reset-password', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('users.reset-password');
+    Route::resource('default-passwords', \App\Http\Controllers\Admin\DefaultPasswordController::class);
+});
+
 
 require __DIR__.'/auth.php';

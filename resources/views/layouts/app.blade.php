@@ -32,6 +32,7 @@
     </style>
 </head>
 <body class="font-sans antialiased">
+<x-alert-messages />
 <div id="loading-overlay" class="fixed inset-0 bg-white dark:bg-gray-900 z-50 flex items-center justify-center">
     <div class="loader"></div>
 </div>

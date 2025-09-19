@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('default-passwords', function (Blueprint $table) {
+        Schema::create('default_passwords', function (Blueprint $table) {
             $table->id();
             $table->string('name')->comment('Nome de identificação da senha, ex: Padrão Sorriso');
             $table->string('password_plain')->comment('A senha em texto plano, que será encriptada ao salvar');
@@ -20,6 +20,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('default-passwords');
+        Schema::dropIfExists('default_passwords');
     }
 };

@@ -54,7 +54,7 @@
 
         {{-- Bloco de Usuários CORRIGIDO E FINAL --}}
         @if(auth()->user()->role_id == 1)
-            <div x-data="{ open: {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.default-passwords.*') ? 'true' : 'false' }} }" class="">
+            <div x-data="{ open: {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.default-passwords.*') || request()->routeIs('admin.backups.*') ? 'true' : 'false' }} }" class="">
                 <button @click="open = !open"
                         class="w-full flex justify-between items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none {{ request()->routeIs('admin.users.*') || request()->routeIs('admin.default-passwords.*') ? 'bg-gray-200 dark:bg-gray-700' : '' }}">
                     <div class="flex items-center">
@@ -78,6 +78,11 @@
                        class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('admin.default-passwords.*') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">
                         Senhas Padrão
                     </a>
+                    <a href="{{ route('admin.backups.index') }}"
+                       class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('admin.backups.*') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">
+                        Backups de Usuários
+                    </a>
+
                 </div>
             </div>
         @endif

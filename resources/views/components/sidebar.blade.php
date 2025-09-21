@@ -86,5 +86,25 @@
                 </div>
             </div>
         @endif
+
+
+        @if(auth()->user()->role_id == 1)
+        <div x-data="{ open: false }">
+            <button @click="open = !open"
+                    class="w-full flex justify-between items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
+                <div class="flex items-center">
+                    <i class="fas fa-file-alt w-6"></i>
+                    <span class="mx-3">Relatórios</span>
+                </div>
+                <span>
+            <i class="fas" :class="{ 'fa-chevron-down': !open, 'fa-chevron-up': open }"></i>
+        </span>
+            </button>
+            <div x-show="open" x-transition class="bg-gray-100 dark:bg-gray-700">
+                <a href="{{ route('pdf-templates.index') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
+                    Criar Modelo de PDF
+                </a>
+        </div>
+        @endif
     </nav>
 </aside>

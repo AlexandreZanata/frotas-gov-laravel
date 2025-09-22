@@ -12,6 +12,9 @@ return new class extends Migration
 // ...remove_oil_columns_from_vehicles_table.php
     public function up(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return; // Skip for sqlite tests (column drops not supported reliably)
+        }
         Schema::table('vehicles', function (Blueprint $table) {
             $table->dropColumn([
                 'last_oil_change_km',
@@ -24,6 +27,9 @@ return new class extends Migration
 
     public function down(): void // Para poder reverter, se necessário
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return; // Nothing to restore in sqlite test env
+        }
         Schema::table('vehicles', function (Blueprint $table) {
             $table->integer('last_oil_change_km')->nullable();
             $table->date('last_oil_change_date')->nullable();

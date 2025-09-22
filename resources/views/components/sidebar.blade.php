@@ -47,7 +47,6 @@
                     </a>
                     <a href="{{ route('vehicles.create') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicles.create') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">Cadastro de Veículos</a>
                     <a href="{{ route('vehicle-categories.index') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicle-categories.*')  ? 'bg-gray-300 dark:bg-gray-600' : '' }}">Gerenciar Categorias</a>
-
                 </div>
             </div>
         @endif
@@ -62,8 +61,8 @@
                         <span class="mx-3">Usuários</span>
                     </div>
                     <span>
-                <i class="fas" :class="{ 'fa-chevron-down': !open, 'fa-chevron-up': open }"></i>
-            </span>
+                        <i class="fas" :class="{ 'fa-chevron-down': !open, 'fa-chevron-up': open }"></i>
+                    </span>
                 </button>
                 <div x-show="open" x-transition class="bg-gray-100 dark:bg-gray-900">
                     <a href="{{ route('admin.users.index') }}"
@@ -82,29 +81,45 @@
                        class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('admin.backups.*') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">
                         Backups de Usuários
                     </a>
-
                 </div>
             </div>
         @endif
 
-
+        {{-- Bloco de Relatórios CORRIGIDO --}}
         @if(auth()->user()->role_id == 1)
-        <div x-data="{ open: false }">
-            <button @click="open = !open"
-                    class="w-full flex justify-between items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
-                <div class="flex items-center">
-                    <i class="fas fa-file-alt w-6"></i>
-                    <span class="mx-3">Relatórios</span>
+            <div x-data="{ open: {{ request()->routeIs('pdf-templates.*') ? 'true' : 'false' }} }" class="">
+                <button @click="open = !open"
+                        class="w-full flex justify-between items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none {{ request()->routeIs('pdf-templates.*') ? 'bg-gray-200 dark:bg-gray-700' : '' }}">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-alt w-6"></i>
+                        <span class="mx-3">Relatórios</span>
+                    </div>
+                    <span>
+                        <i class="fas" :class="{ 'fa-chevron-down': !open, 'fa-chevron-up': open }"></i>
+                    </span>
+                </button>
+                <div x-show="open" x-transition class="bg-gray-100 dark:bg-gray-900">
+                    <a href="{{ route('pdf-templates.index') }}"
+                       class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('pdf-templates.*') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">
+                        Criar Modelo de PDF
+                    </a>
                 </div>
-                <span>
-            <i class="fas" :class="{ 'fa-chevron-down': !open, 'fa-chevron-up': open }"></i>
-        </span>
-            </button>
-            <div x-show="open" x-transition class="bg-gray-100 dark:bg-gray-700">
-                <a href="{{ route('pdf-templates.index') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600">
-                    Criar Modelo de PDF
-                </a>
-        </div>
+            </div>
         @endif
+
+        <div x-data="{ open: {{ request()->routeIs('oil.*') || request()->routeIs('oil-products.*') ? 'true' : 'false' }} }">
+            <button @click="open = !open" class="w-full flex justify-between items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none {{ (request()->routeIs('oil.*') || request()->routeIs('oil-products.*')) ? 'bg-gray-200 dark:bg-gray-700' : '' }}">
+                <div class="flex items-center">
+                    <i class="fas fa-oil-can w-6"></i>
+                    <span class="mx-3">Óleo</span>
+                </div>
+                <span><i class="fas" :class="{ 'fa-chevron-down': !open, 'fa-chevron-up': open }"></i></span>
+            </button>
+            <div x-show="open" x-transition class="bg-gray-100 dark:bg-gray-900">
+                <a href="{{ route('oil.maintenance') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('oil.maintenance') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">Dashboard</a>
+                <a href="{{ route('oil.logs') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('oil.logs') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">Histórico</a>
+                <a href="{{ route('oil-products.index') }}" class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('oil-products.*') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">Produtos</a>
+            </div>
+        </div>
     </nav>
 </aside>

@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return; // skip for sqlite tests
+        }
         Schema::table('vehicles', function (Blueprint $table) {
             // Primeiro, torna a nova coluna obrigatória (não-nula)
             $table->foreignId('fuel_type_id')->nullable(false)->change();
@@ -25,6 +28,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return; // skip revert for sqlite
+        }
         Schema::table('vehicles', function (Blueprint $table) {
             $table->string('fuel_type')->nullable(); // Ajuste o after se necessário
             $table->foreignId('fuel_type_id')->nullable()->change();

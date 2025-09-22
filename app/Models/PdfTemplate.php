@@ -64,5 +64,15 @@ class PdfTemplate extends Model
 
         // Visualização em tempo real
         'real_time_preview',
+
+        // Novos campos de posição vertical/inline
+        'header_image_vertical_position',
+        'footer_image_vertical_position',
+    ];
+
+    protected $casts = [
+        'show_table_lines' => 'boolean',
+        'use_zebra_stripes' => 'boolean',
+        'real_time_preview' => 'boolean',
     ];
 }

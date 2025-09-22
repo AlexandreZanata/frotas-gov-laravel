@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
-            $table->string('cpf', 17)->unique();
+            $table->string('cpf', 17)->unique()->nullable(); // nullable para testes genéricos
             $table->string('email', 100)->unique();
             $table->string('password'); // 255 caracteres por padrão
 
             // Chaves Estrangeiras (Relacionamentos)
-            $table->foreignId('role_id')->constrained('roles');
+            $table->foreignId('role_id')->nullable()->constrained('roles')->nullOnDelete();
             $table->foreignId('secretariat_id')->nullable()->constrained('secretariats')->onDelete('set null');
             $table->foreignId('department_id')->nullable()->constrained('departments')->onDelete('set null');
 

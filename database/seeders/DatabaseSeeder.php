@@ -11,13 +11,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Adicione estas duas linhas:
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
             VehicleStatusSeeder::class,
             ChecklistItemSeeder::class,
-
+            OilProductSeeder::class,
         ]);
     }
 }

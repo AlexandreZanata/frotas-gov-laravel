@@ -10,6 +10,10 @@
         'name' => old('name', $pdfTemplate->name),
         'header_image_url' => $headerImageUrl,
         'footer_image_url' => $footerImageUrl,
+        'header_image_existing' => $pdfTemplate->header_image ?? null,
+        'footer_image_existing' => $pdfTemplate->footer_image ?? null,
+        'header_image_vertical_position' => old('header_image_vertical_position', 'above'),
+        'footer_image_vertical_position' => old('footer_image_vertical_position', 'above'),
         'margin_top' => old('margin_top', $pdfTemplate->margin_top ?? 15),
         'margin_bottom' => old('margin_bottom', $pdfTemplate->margin_bottom ?? 15),
         'margin_left' => old('margin_left', $pdfTemplate->margin_left ?? 15),
@@ -68,29 +72,38 @@
                         </form>
                     </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg lg:sticky lg:top-4 self-start transition-all duration-300" x-bind:class="{ 'ring-2 ring-indigo-500/30': previewLoading }">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <h3 class="text-lg font-medium mb-4">Pré-visualização do PDF</h3>
-                        <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
+                            <span>Pré-visualização do PDF</span>
+                            <span class="text-xs px-2 py-0.5 rounded bg-indigo-100 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-200" x-text="templateData.real_time_preview ? 'Auto' : 'Manual'"></span>
+                        </h3>
+                        <div class="flex flex-wrap gap-3 items-center mb-4">
                             <span x-show="!previewLoading && !previewUrl" class="text-sm text-gray-500 dark:text-gray-400">
                                 Status: Aguardando pré-visualização
                             </span>
-                            <span x-show="!previewLoading && previewUrl" class="text-sm text-green-600 dark:text-green-400">
-                                Status: PDF gerado com sucesso
+                            <span x-show="!previewLoading && previewUrl" class="text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                PDF atualizado
                             </span>
-                            <button @click="updatePreview()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md text-sm" :disabled="previewLoading">
-                                Atualizar Pré-visualização
+                            <button @click="updatePreview(true)" type="button" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md text-sm transition-colors" :disabled="previewLoading">
+                                Atualizar Agora
                             </button>
                         </div>
-                        <div x-show="previewLoading" class="flex justify-center my-4">
-                            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900 dark:border-white"></div>
+
+                        <div class="relative border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden group transition-all" x-bind:class="{ 'opacity-50': previewLoading }">
+                            <template x-if="previewUrl">
+                                <iframe x-bind:src="previewUrl" class="w-full h-[800px] transition-opacity duration-300" x-bind:class="{ 'opacity-0': previewLoading, 'opacity-100': !previewLoading }"></iframe>
+                            </template>
+                            <div x-show="!previewUrl && !previewLoading" class="h-[400px] flex items-center justify-center text-gray-500 dark:text-gray-400">
+                                Gerando visualização do PDF...
+                            </div>
+                            <div x-show="previewLoading" x-transition.opacity class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm">
+                                <div class="h-10 w-10 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                                <p class="text-xs text-gray-600 dark:text-gray-300 tracking-wide">Atualizando pré-visualização...</p>
+                            </div>
                         </div>
-                        <div x-show="!previewLoading && !previewUrl" class="text-center py-10 text-gray-500 dark:text-gray-400">
-                            <p>Gerando visualização do PDF...</p>
-                        </div>
-                        <div x-show="!previewLoading && previewUrl" class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                            <iframe x-bind:src="previewUrl" class="w-full h-[800px]"></iframe>
-                        </div>
+                        <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">As alterações são aplicadas automaticamente quando o modo em tempo real está ativo. Desative para atualizar manualmente.</p>
                     </div>
                 </div>
             </div>
@@ -103,50 +116,106 @@
                 templateData: initialData,
                 previewLoading: false,
                 previewUrl: null,
+                objectUrl: null,
                 debounceTimeout: null,
-                init() {
+                lastManual: 0,
+                insertToken(field, token) {
+                    if (!this.templateData[field]) this.templateData[field] = '';
+                    this.templateData[field] += token;
                     this.updatePreview();
-                    this.$watch('templateData', (value) => {
-                        if (value.real_time_preview) {
-                            this.updatePreview();
-                        }
-                    }, { deep: true });
                 },
-                updatePreview() {
-                    if (this.debounceTimeout) {
-                        clearTimeout(this.debounceTimeout);
+                handleImageChange(e, scope) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const url = URL.createObjectURL(file);
+                        if (scope === 'header') {
+                            this.templateData.header_image_url = url;
+                            this.templateData.header_image_existing = null;
+                        } else {
+                            this.templateData.footer_image_url = url;
+                            this.templateData.footer_image_existing = null;
+                        }
+                        this.updatePreview(true);
                     }
+                },
+                removeImage(scope) {
+                    if (scope === 'header') {
+                        this.templateData.header_image_url = '';
+                        this.templateData.header_image_existing = null;
+                        const input = document.getElementById('header_image');
+                        if (input) input.value='';
+                    } else {
+                        this.templateData.footer_image_url = '';
+                        this.templateData.footer_image_existing = null;
+                        const input = document.getElementById('footer_image');
+                        if (input) input.value='';
+                    }
+                    this.updatePreview(true);
+                },
+                updatePreview(forceImmediate = false) {
+                    if (this.debounceTimeout) clearTimeout(this.debounceTimeout);
+                    const delay = forceImmediate ? 0 : 500;
                     this.debounceTimeout = setTimeout(() => {
                         this.previewLoading = true;
                         const formData = new FormData();
                         Object.keys(this.templateData).forEach(key => {
-                            if (key !== 'header_image_url' && key !== 'footer_image_url') {
+                            if (!['header_image_url','footer_image_url'].includes(key)) {
                                 formData.append(key, this.templateData[key]);
                             }
                         });
+                        const headerInput = document.getElementById('header_image');
+                        const footerInput = document.getElementById('footer_image');
+                        if (headerInput && headerInput.files[0]) formData.append('header_image', headerInput.files[0]);
+                        if (footerInput && footerInput.files[0]) formData.append('footer_image', footerInput.files[0]);
+                        if ((!headerInput || !headerInput.files[0]) && this.templateData.header_image_existing) {
+                            formData.append('header_image_existing', this.templateData.header_image_existing);
+                        }
+                        if ((!footerInput || !footerInput.files[0]) && this.templateData.footer_image_existing) {
+                            formData.append('footer_image_existing', this.templateData.footer_image_existing);
+                        }
+                        // Normaliza booleans para 1/0
+                        ['show_table_lines','use_zebra_stripes','real_time_preview'].forEach(k => {
+                            if (k in this.templateData) {
+                                formData.set(k, this.templateData[k] ? 1 : 0);
+                            }
+                        });
+                        // Garante envio das posições e preview_mode
+                        formData.set('preview_mode', '1');
+                        formData.set('header_image_vertical_position', this.templateData.header_image_vertical_position || 'above');
+                        formData.set('footer_image_vertical_position', this.templateData.footer_image_vertical_position || 'above');
                         const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                         fetch('{{ route('pdf-templates.ajax-preview') }}', {
                             method: 'POST',
                             headers: { 'X-CSRF-TOKEN': token },
                             body: formData
                         })
-                        .then(response => {
-                            if (!response.ok) throw new Error('Erro na resposta do servidor: ' + response.status);
-                            return response.json();
-                        })
+                        .then(r => { if(!r.ok) throw new Error('Erro '+r.status); return r.json(); })
                         .then(data => {
                             if (data.success) {
-                                this.previewUrl = data.pdf_base64;
-                            } else {
-                                console.error('Resposta de sucesso falsa do servidor.');
+                                // Converter base64 em Blob para evitar warning do PDF.js com data URL
+                                const b64 = data.pdf_base64.split(',')[1];
+                                try {
+                                    const byteChars = atob(b64);
+                                    const byteNumbers = new Array(byteChars.length);
+                                    for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+                                    const blob = new Blob([new Uint8Array(byteNumbers)], { type: 'application/pdf' });
+                                    if (this.objectUrl) URL.revokeObjectURL(this.objectUrl);
+                                    this.objectUrl = URL.createObjectURL(blob);
+                                    const ts = Date.now();
+                                    this.previewUrl = this.objectUrl + '#toolbar=0&v=' + ts;
+                                } catch(e) {
+                                    const ts = Date.now();
+                                    this.previewUrl = data.pdf_base64 + '#toolbar=0&v=' + ts;
+                                }
                             }
-                            this.previewLoading = false;
                         })
-                        .catch(error => {
-                            console.error('Erro ao gerar preview:', error);
-                            this.previewLoading = false;
-                        });
-                    }, 500);
+                        .catch(e => console.error('Erro preview:', e))
+                        .finally(() => { setTimeout(() => { this.previewLoading = false; }, 150); });
+                    }, delay);
+                },
+                init() {
+                    this.updatePreview(true);
+                    this.$watch('templateData', val => { if (val.real_time_preview) this.updatePreview(); }, { deep: true });
                 }
             }
         }

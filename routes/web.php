@@ -15,7 +15,10 @@ use App\Http\Controllers\{
     SecretariatController,
     VehicleCategoryController,
     VehicleController,
-    VehicleStatusController
+    VehicleStatusController,
+    OilMaintenanceController,
+    OilChangeLogController,
+    OilProductController
 };
 
 /*
@@ -62,6 +65,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{run}/finalizar', 'updateRun')->name('updateRun');
     });
 
+    // Rota de busca de veículos (JSON) usada pela página de seleção
+    Route::get('/api/vehicles/search', [DiarioBordoController::class, 'searchVehicles'])->name('api.vehicles.search');
+
     // Grupo de rotas para Relatórios
     Route::prefix('reports')->name('reports.')->group(function() {
         Route::get('/fuel-analysis', [FuelReportController::class, 'index'])->name('fuel-analysis');
@@ -77,6 +83,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/vehicles/status', [VehicleStatusController::class, 'index'])->name('vehicles.status');
     Route::resource('vehicles', VehicleController::class);
     Route::resource('vehicle-categories', VehicleCategoryController::class);
+
+    // Rotas de Manutenção de Óleo / Dashboard
+    Route::prefix('manutencao/oleo')->name('oil.')->group(function() {
+        Route::get('/', [OilMaintenanceController::class, 'index'])->name('maintenance');
+        Route::get('/historico', [OilMaintenanceController::class, 'logs'])->name('logs');
+        Route::get('/veiculos/{vehicle}/logs', [OilMaintenanceController::class, 'vehicleLogs'])->name('vehicle.logs');
+        Route::post('/registros', [OilChangeLogController::class, 'store'])->name('logs.store');
+    });
+
+    // Rotas de Produtos de Óleo
+    Route::resource('oil-products', OilProductController::class)->except(['show']);
+    Route::get('oil-products/{oilProduct}/history', [OilProductController::class,'history'])->name('oil-products.history');
+    Route::post('oil-products/{oilProduct}/adjustments', [\App\Http\Controllers\OilStockAdjustmentController::class,'store'])->name('oil-products.adjustments.store');
+    Route::get('oil-products/{oilProduct}/history/export', [OilProductController::class,'exportHistoryCsv'])->name('oil-products.history.export');
 
     // Outras rotas
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');

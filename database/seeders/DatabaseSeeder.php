@@ -13,10 +13,20 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleSeeder::class,
-            UserSeeder::class,
+            SecretariatSeeder::class,
+            DepartmentSeeder::class,
             VehicleStatusSeeder::class,
+            FuelTypeSeeder::class,
+            TireLayoutSeeder::class, // layouts antes das categorias para poder vincular
+            VehicleCategorySeeder::class,
             ChecklistItemSeeder::class,
+            UserSeeder::class,
+            VehicleSeeder::class,
+            GasStationSeeder::class, // novos postos antes de abastecimentos
+            TireSeeder::class,
             OilProductSeeder::class,
+            FineSeeder::class, // novo seeder de multas
+            FuelingSeeder::class, // abastecimentos de teste (idempotente)
         ]);
     }
 }

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -20,10 +21,14 @@ return new class extends Migration
             if (!Schema::hasColumn('oil_products','recommended_interval_km')) $table->unsignedInteger('recommended_interval_km')->nullable()->after('unit_cost');
             if (!Schema::hasColumn('oil_products','recommended_interval_days')) $table->unsignedInteger('recommended_interval_days')->nullable()->after('recommended_interval_km');
             if (!Schema::hasColumn('oil_products','description')) $table->text('description')->nullable()->after('recommended_interval_days');
-            if (Schema::hasColumn('oil_products','code')) {
-                try { $table->unique('code'); } catch (Throwable $e) {}
-            }
         });
+        // Garantir índice único de code somente se não existir (outras migrações já podem ter criado)
+        if (Schema::hasColumn('oil_products','code')) {
+            $existing = DB::select("SHOW INDEX FROM oil_products WHERE Key_name='oil_products_code_unique'");
+            if (empty($existing)) {
+                try { DB::statement('ALTER TABLE oil_products ADD UNIQUE INDEX oil_products_code_unique (code)'); } catch (Throwable $e) {}
+            }
+        }
     }
 
     public function down(): void
@@ -31,4 +36,3 @@ return new class extends Migration
         // Não removemos colunas para não perder dados.
     }
 };
-

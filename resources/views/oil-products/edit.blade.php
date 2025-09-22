@@ -1,15 +1,19 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Editar Produto de Óleo</h2>
+        <x-page-header title="Editar Produto de Óleo" icon="fas fa-oil-can">
+            <a href="{{ route('oil-products.index') }}" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-sm rounded text-gray-800 dark:text-gray-100">Voltar</a>
+        </x-page-header>
     </x-slot>
 
-    <div class="py-8 max-w-5xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white dark:bg-gray-800 shadow rounded p-6">
-            <form method="POST" action="{{ route('oil-products.update', $product) }}" class="space-y-6">
-                @method('PUT')
-                @include('oil-products._form', ['product' => $product])
-            </form>
+    <x-page-container>
+        <div class="max-w-5xl mx-auto">
+            <div class="bg-white dark:bg-gray-800 shadow rounded p-6">
+                <form method="POST" action="{{ route('oil-products.update', $product) }}" class="space-y-6">
+                    @csrf
+                    @method('PUT')
+                    @include('oil-products._form', ['product' => $product])
+                </form>
+            </div>
         </div>
-    </div>
+    </x-page-container>
 </x-app-layout>
-

@@ -1,14 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Histórico de Trocas de Óleo</h2>
+        <x-page-header title="Histórico de Trocas de Óleo" icon="fas fa-droplet">
             <a href="{{ route('oil.maintenance') }}" class="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium rounded bg-blue-600 hover:bg-blue-700 text-white shadow">
                 <i class="fas fa-gauge"></i> Dashboard
             </a>
-        </div>
+        </x-page-header>
     </x-slot>
 
-    <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="{ filtersOpen:false }">
+    <x-page-container x-data="{ filtersOpen:false }">
         <form method="GET" class="mb-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-4 space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Filtros</h3>
@@ -94,6 +93,5 @@
                 <div class="p-3 border-t border-gray-200 dark:border-gray-700">{{ $logs->links() }}</div>
             @endif
         </div>
-    </div>
+    </x-page-container>
 </x-app-layout>
-

@@ -2,6 +2,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -18,7 +19,6 @@ return new class extends Migration
 
                 $addString('name');
                 $addString('code',50);
-                if (Schema::hasColumn('oil_products','code')) { try { $table->unique('code'); } catch (Throwable $e) {} }
                 $addString('brand',100);
                 $addString('viscosity',50);
                 $addInt('stock_quantity');
@@ -28,6 +28,11 @@ return new class extends Migration
                 $addInt('recommended_interval_days');
                 if (!Schema::hasColumn('oil_products','description')) { $table->text('description')->nullable(); }
             });
+            // Opcional: garantir unique via SQL apenas se não existir
+            $existing = DB::select("SHOW INDEX FROM oil_products WHERE Key_name='oil_products_code_unique'");
+            if (empty($existing) && Schema::hasColumn('oil_products','code')) {
+                try { DB::statement('ALTER TABLE oil_products ADD UNIQUE INDEX oil_products_code_unique (code)'); } catch (Throwable $e) {}
+            }
         }
 
         // Índices para oil_change_logs
@@ -55,7 +60,6 @@ return new class extends Migration
                 }
             });
         }
-        // Não removemos colunas em down para evitar perda de dados
+        // Não removemos colunas nem índice unique de code
     }
 };
-

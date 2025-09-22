@@ -11,6 +11,7 @@
                 <div class="p-6 text-gray-900 dark:text-gray-100">
                     <form action="{{ route('vehicle-categories.store') }}" method="POST" class="space-y-6">
                         @csrf
+
                         {{-- Nome da Categoria --}}
                         <div>
                             <x-input-label for="name" :value="__('Nome da Categoria')" />
@@ -37,7 +38,32 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-end mt-4">
+                        {{-- Novos Campos para Manutenção de Pneus --}}
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <x-input-label for="tire_change_km" :value="__('Troca / Revisão Pneus (KM)')" />
+                                <x-text-input id="tire_change_km" class="block mt-1 w-full" type="number" name="tire_change_km" :value="old('tire_change_km')" placeholder="ex: 40000" />
+                                <x-input-error :messages="$errors->get('tire_change_km')" class="mt-2" />
+                            </div>
+                            <div>
+                                <x-input-label for="tire_change_days" :value="__('Troca / Revisão Pneus (Dias)')" />
+                                <x-text-input id="tire_change_days" class="block mt-1 w-full" type="number" name="tire_change_days" :value="old('tire_change_days')" placeholder="ex: 365" />
+                                <x-input-error :messages="$errors->get('tire_change_days')" class="mt-2" />
+                            </div>
+                            <div>
+                                <x-input-label for="tire_layout_id" :value="__('Layout Visual de Pneus')" />
+                                <select id="tire_layout_id" name="tire_layout_id" class="mt-1 block w-full rounded border-gray-300 dark:bg-gray-800 dark:border-gray-700">
+                                    <option value="">— Selecionar —</option>
+                                    @foreach(($tireLayouts ?? []) as $l)
+                                        <option value="{{ $l->id }}" @selected(old('tire_layout_id')==$l->id)>{{ $l->name }}</option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('tire_layout_id')" class="mt-2" />
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-end mt-4 gap-3">
+                            <a href="{{ route('vehicle-categories.index') }}" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded text-sm">{{ __('Cancelar') }}</a>
                             <x-primary-button>
                                 {{ __('Salvar') }}
                             </x-primary-button>

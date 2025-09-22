@@ -12,6 +12,7 @@ class VehicleFactory extends Factory
     {
         $brand = $this->faker->randomElement(['Ford','Chevrolet','Fiat','VW','Toyota']);
         $model = $this->faker->randomElement(['Ranger','Onix','Uno','Gol','Corolla']);
+        $statusId = VehicleStatus::inRandomOrder()->value('id') ?? VehicleStatus::factory();
         return [
             'brand' => $brand,
             'model' => $model,
@@ -28,8 +29,7 @@ class VehicleFactory extends Factory
             'current_department_id' => Department::factory(),
             'tank_capacity' => $this->faker->randomFloat(2, 30, 80),
             'avg_km_per_liter' => $this->faker->randomFloat(2, 5, 15),
-            'status' => 'Disponível',
+            'vehicle_status_id' => $statusId,
         ];
     }
 }
-

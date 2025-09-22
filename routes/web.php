@@ -18,7 +18,11 @@ use App\Http\Controllers\{
     VehicleStatusController,
     OilMaintenanceController,
     OilChangeLogController,
-    OilProductController
+    OilProductController,
+    TireController,
+    FineController,
+    FuelPriceSurveyController,
+    VehicleBlockController
 };
 
 /*
@@ -44,7 +48,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 | Rotas para Usuários Autenticados
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth','ack.fines'])->group(function () {
 
     // Grupo de rotas para o Perfil do Usuário
     Route::controller(ProfileController::class)->prefix('profile')->name('profile.')->group(function () {
@@ -71,6 +75,8 @@ Route::middleware('auth')->group(function () {
     // Grupo de rotas para Relatórios
     Route::prefix('reports')->name('reports.')->group(function() {
         Route::get('/fuel-analysis', [FuelReportController::class, 'index'])->name('fuel-analysis');
+        Route::get('/fuel', [\App\Http\Controllers\FuelConsumptionReportController::class,'index'])->name('fuel.index');
+        Route::post('/fuel/pdf', [\App\Http\Controllers\FuelConsumptionReportController::class,'pdf'])->name('fuel.pdf');
     });
 
     // Grupo de rotas para Modelos de PDF
@@ -81,6 +87,11 @@ Route::middleware('auth')->group(function () {
     // Rotas de Recursos e Cadastros Gerais
     Route::get('/secretarias', [SecretariatController::class, 'index'])->name('secretariats.index');
     Route::get('/vehicles/status', [VehicleStatusController::class, 'index'])->name('vehicles.status');
+    // Mover rota de bloqueio ANTES do resource para não conflitar com /vehicles/{vehicle}
+    Route::get('/vehicles/blocking', [VehicleBlockController::class,'index'])->name('vehicles.blocking');
+    Route::get('/api/vehicles/blocking/search', [VehicleBlockController::class,'search'])->name('api.vehicles.blocking.search');
+    Route::post('/api/vehicles/{vehicle}/block', [VehicleBlockController::class,'block'])->name('api.vehicles.block');
+    Route::post('/api/vehicles/{vehicle}/unblock', [VehicleBlockController::class,'unblock'])->name('api.vehicles.unblock');
     Route::resource('vehicles', VehicleController::class);
     Route::resource('vehicle-categories', VehicleCategoryController::class);
 
@@ -98,10 +109,79 @@ Route::middleware('auth')->group(function () {
     Route::post('oil-products/{oilProduct}/adjustments', [\App\Http\Controllers\OilStockAdjustmentController::class,'store'])->name('oil-products.adjustments.store');
     Route::get('oil-products/{oilProduct}/history/export', [OilProductController::class,'exportHistoryCsv'])->name('oil-products.history.export');
 
+    // Módulo de Pneus
+    Route::prefix('pneus')->name('tires.')->group(function() {
+        Route::get('/dashboard', [TireController::class,'dashboard'])->name('dashboard');
+        Route::get('/atencao', [TireController::class,'attention'])->name('attention');
+        Route::get('/veiculos/{vehicle}/layout', [\App\Http\Controllers\TireActionController::class,'layout'])->name('vehicle.layout');
+        Route::post('/veiculos/{vehicle}/rotacao-interna', [\App\Http\Controllers\TireActionController::class,'internalRotation'])->name('vehicle.rotation.internal');
+        Route::post('/veiculos/{vehicle}/rotacao-externa/saida', [\App\Http\Controllers\TireActionController::class,'externalOut'])->name('vehicle.rotation.external.out');
+        Route::post('/veiculos/{vehicle}/rotacao-externa/entrada', [\App\Http\Controllers\TireActionController::class,'externalIn'])->name('vehicle.rotation.external.in');
+        Route::post('/veiculos/{vehicle}/substituicao', [\App\Http\Controllers\TireActionController::class,'replacement'])->name('vehicle.replacement');
+        // Busca de pneus em estoque (multi-campos)
+        Route::get('/buscar-estoque', [TireController::class,'searchStock'])->name('search-stock');
+        // Recapagem
+        Route::post('/{tire}/recapagem/enviar', [TireController::class,'sendForRetread'])->name('retread.send');
+        Route::post('/{tire}/recapagem/receber', [TireController::class,'receiveFromRetread'])->name('retread.receive');
+    });
+    Route::resource('tires', TireController::class)->except(['show']);
+    Route::resource('tire-layouts', \App\Http\Controllers\TireLayoutController::class)->except(['show']);
+
+    // Rotas de Multas (Módulo)
+    Route::prefix('fines')->name('fines.')->controller(FineController::class)->group(function() {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/pending/acknowledgement', 'pending')->name('pending');
+        // Rotas AJAX de busca em tempo real (antes de rotas com {fine})
+        Route::get('/search/vehicles','searchVehicles')->name('search.vehicles');
+        Route::get('/search/drivers','searchDrivers')->name('search.drivers');
+        Route::get('/search/infraction-codes','searchInfractionCodes')->name('search.infraction-codes');
+        Route::get('/search/auto-numbers','searchAutoNumbers')->name('search.auto-numbers');
+        // Rotas dependentes de recurso específico
+        Route::get('/{fine}', 'show')->name('show');
+        Route::get('/{fine}/edit', 'edit')->name('edit');
+        Route::put('/{fine}', 'update')->name('update');
+        Route::delete('/{fine}', 'destroy')->name('destroy');
+        Route::post('/{fine}/infractions', 'storeInfraction')->name('infractions.store');
+        Route::patch('/{fine}/infractions/{infraction}', 'updateInfraction')->name('infractions.update');
+        Route::delete('/{fine}/infractions/{infraction}', 'deleteInfraction')->name('infractions.destroy');
+        Route::post('/{fine}/infractions/{infraction}/attachments', 'uploadAttachment')->name('infractions.attachments.store');
+        Route::delete('/attachments/{attachment}', 'deleteAttachment')->name('attachments.destroy');
+        Route::post('/{fine}/status', 'changeStatus')->name('change-status');
+        Route::post('/{fine}/ack', 'acknowledge')->name('ack');
+        Route::get('/{fine}/pdf', 'pdf')->name('pdf');
+    });
+
+    // Rotas de Cotação de Combustível (limitado)
+    Route::prefix('fuel-surveys')->name('fuel-surveys.')->group(function(){
+        Route::get('/', [FuelPriceSurveyController::class,'index'])->name('index');
+        Route::get('/create', [FuelPriceSurveyController::class,'create'])->name('create');
+        Route::post('/', [FuelPriceSurveyController::class,'store'])->name('store');
+        Route::get('/{fuelSurvey}', [FuelPriceSurveyController::class,'show'])->name('show');
+    });
+
+
     // Outras rotas
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::get('/search', [SearchController::class, 'search'])->name('ajax.search');
+
+    // Módulo de Chat
+    Route::get('/chat', [\App\Http\Controllers\ChatController::class,'index'])->name('chat.index');
+    Route::get('/api/chat/conversations', [\App\Http\Controllers\ChatController::class,'list'])->name('api.chat.conversations');
+    Route::post('/api/chat/conversations', [\App\Http\Controllers\ChatController::class,'store'])->name('api.chat.conversations.store');
+    Route::post('/api/chat/conversations/{conversation}/invite', [\App\Http\Controllers\ChatController::class,'invite'])->name('api.chat.conversations.invite');
+    Route::post('/api/chat/conversations/{conversation}/accept', [\App\Http\Controllers\ChatController::class,'accept'])->name('api.chat.conversations.accept');
+    Route::post('/api/chat/conversations/{conversation}/decline', [\App\Http\Controllers\ChatController::class,'decline'])->name('api.chat.conversations.decline');
+    Route::post('/api/chat/conversations/{conversation}/leave', [\App\Http\Controllers\ChatController::class,'leave'])->name('api.chat.conversations.leave');
+    Route::get('/api/chat/conversations/{conversation}/messages', [\App\Http\Controllers\ChatController::class,'messages'])->name('api.chat.conversations.messages');
+    Route::post('/api/chat/messages', [\App\Http\Controllers\ChatController::class,'send'])->name('api.chat.messages.send');
+    Route::post('/api/chat/messages/{message}/read', [\App\Http\Controllers\ChatController::class,'read'])->name('api.chat.messages.read');
 });
+
+// Rotas Públicas de Verificação de Autenticidade de Multa
+Route::get('/verificar-multa', [FineController::class,'verifyForm'])->name('fines.verify.form');
+Route::post('/verificar-multa', [FineController::class,'verifySubmit'])->name('fines.verify.submit');
 
 /*
 |--------------------------------------------------------------------------

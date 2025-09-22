@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\VehicleCategory;
+use App\Models\TireLayout; // adicionado
 use Illuminate\Http\Request;
 
 class VehicleCategoryController extends Controller
@@ -15,7 +16,8 @@ class VehicleCategoryController extends Controller
 
     public function create()
     {
-        return view('vehicle-categories.create');
+        $tireLayouts = TireLayout::orderBy('name')->get();
+        return view('vehicle-categories.create', compact('tireLayouts'));
     }
 
     public function store(Request $request)
@@ -25,6 +27,9 @@ class VehicleCategoryController extends Controller
             'layout_key' => 'nullable|string|max:50',
             'oil_change_km' => 'required|integer|min:0',
             'oil_change_days' => 'required|integer|min:0',
+            'tire_change_km' => 'nullable|integer|min:0',
+            'tire_change_days' => 'nullable|integer|min:0',
+            'tire_layout_id' => 'nullable|exists:tire_layouts,id',
         ]);
 
         VehicleCategory::create($validated);
@@ -34,7 +39,8 @@ class VehicleCategoryController extends Controller
 
     public function edit(VehicleCategory $vehicleCategory)
     {
-        return view('vehicle-categories.edit', ['category' => $vehicleCategory]);
+        $tireLayouts = TireLayout::orderBy('name')->get();
+        return view('vehicle-categories.edit', ['category' => $vehicleCategory,'tireLayouts'=>$tireLayouts]);
     }
 
     public function update(Request $request, VehicleCategory $vehicleCategory)
@@ -44,6 +50,9 @@ class VehicleCategoryController extends Controller
             'layout_key' => 'nullable|string|max:50',
             'oil_change_km' => 'required|integer|min:0',
             'oil_change_days' => 'required|integer|min:0',
+            'tire_change_km' => 'nullable|integer|min:0',
+            'tire_change_days' => 'nullable|integer|min:0',
+            'tire_layout_id' => 'nullable|exists:tire_layouts,id',
         ]);
 
         $vehicleCategory->update($validated);

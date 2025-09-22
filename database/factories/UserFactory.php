@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\Role;
 use App\Models\Secretariat;
@@ -31,7 +30,8 @@ class UserFactory extends Factory
             'cpf' => fake()->unique()->numerify('###########'),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            // usar plain text; cast 'hashed' aplica hash automaticamente
+            'password' => static::$password ??= 'password',
             'role_id' => Role::factory(),
             'secretariat_id' => Secretariat::factory(),
             'department_id' => Department::factory(),

@@ -1,14 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Dashboard de Manutenção de Óleo</h2>
+        <x-page-header title="Dashboard de Manutenção de Óleo" icon="fas fa-gauge">
             <a href="{{ route('oil.logs') }}" class="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium rounded bg-indigo-600 hover:bg-indigo-700 text-white shadow">
                 <i class="fas fa-list"></i> Histórico
             </a>
-        </div>
+        </x-page-header>
     </x-slot>
 
-    <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="{ openForm: null }">
+    <x-page-container x-data="{ openForm: null }">
         <div class="mb-6 grid gap-4 md:grid-cols-3">
             <form method="GET" class="flex gap-2 col-span-2">
                 <div class="flex-1 relative">
@@ -136,5 +135,5 @@
                 </div>
             @endforelse
         </div>
-    </div>
+    </x-page-container>
 </x-app-layout>

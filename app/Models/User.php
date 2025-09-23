@@ -123,4 +123,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(AuditLog::class, 'user_id');
     }
+
+    public function finesAsDriver(): HasMany
+    {
+        return $this->hasMany(Fine::class, 'driver_id');
+    }
 }

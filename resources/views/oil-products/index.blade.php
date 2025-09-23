@@ -1,14 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Produtos de Óleo</h2>
+        <x-page-header title="Produtos de Óleo">
             <a href="{{ route('oil-products.create') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-medium shadow">
                 <i class="fas fa-plus"></i> Novo Produto
             </a>
-        </div>
+        </x-page-header>
     </x-slot>
 
-    <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <x-page-container>
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <form method="GET" class="flex gap-2 w-full md:w-2/3">
                 <div class="flex-1 relative">
@@ -41,14 +40,14 @@
                         <th class="px-4 py-2 text-center w-40">Ações</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-gray-700 dark:text-gray-100">
                 @forelse($products as $p)
                     @php($low=$p->isLowStock())
                     <tr @class([
                         'hover:bg-gray-50 dark:hover:bg-gray-700/40 transition',
                         'bg-red-50/70 dark:bg-red-900/25'=>$low
                     ])>
-                        <td class="px-4 py-2 font-medium text-gray-800 dark:text-gray-100">
+                        <td class="px-4 py-2 font-medium"> {{-- já herda dark claro --}}
                             <div class="flex items-center gap-2">
                                 <span>{{ $p->display_name }}</span>
                                 @if($low)
@@ -70,7 +69,7 @@
                                 <a href="{{ route('oil-products.edit',$p) }}" class="text-blue-600 dark:text-blue-400 hover:underline" title="Editar"><i class="fas fa-edit"></i></a>
                                 <form method="POST" action="{{ route('oil-products.destroy',$p) }}" onsubmit="return confirm('Confirmar exclusão do produto?')" class="inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:underline" title="Excluir"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:underline" title="Excluir"><i class="fas fa-trash"></i></button>
                                 </form>
                             </div>
                         </td>
@@ -85,5 +84,5 @@
         </div>
 
         <div class="mt-6">{{ $products->links() }}</div>
-    </div>
+    </x-page-container>
 </x-app-layout>

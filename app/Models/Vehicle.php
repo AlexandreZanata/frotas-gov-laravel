@@ -33,7 +33,13 @@ class Vehicle extends Model
         'current_department_id',
         'tank_capacity',
         'avg_km_per_liter',
-        'status'
+        'status',
+        'tire_service_base_km','tire_service_base_date',
+        'vehicle_status_id'
+    ];
+
+    protected $casts = [
+        'tire_service_base_date'=>'date'
     ];
 
     /**
@@ -84,6 +90,26 @@ class Vehicle extends Model
         return $this->hasOne(OilChangeLog::class)->latestOfMany();
     }
 
+    public function tires()
+    {
+        return $this->hasMany(Tire::class,'current_vehicle_id');
+    }
+
+    public function activeTireMounts()
+    {
+        return $this->hasMany(VehicleTire::class)->where('active',true);
+    }
+
+    public function tireEvents()
+    {
+        return $this->hasMany(TireEvent::class);
+    }
+
+    public function fines()
+    {
+        return $this->hasMany(Fine::class);
+    }
+
     public function getOilMaintenanceStatusAttribute(): array
     {
         if (!Schema::hasTable('oil_change_logs') || !Schema::hasColumn('oil_change_logs','vehicle_id')) {
@@ -126,11 +152,11 @@ class Vehicle extends Model
         $kmProgress = null; $daysProgress = null;
         if ($intervalKm && $nextKm) {
             $kmUsed = $this->current_km - $log->odometer_km;
-            $kmProgress = max(0, min(100, round(($kmUsed / $intervalKm) * 100, 1)));
+            $kmProgress = \max(0, \min(100, \round(($kmUsed / $intervalKm) * 100, 1)));
         }
         if ($intervalDays && $nextDate) {
             $daysUsed = Carbon::parse($log->change_date)->diffInDays($now);
-            $daysProgress = max(0, min(100, round(($daysUsed / $intervalDays) * 100, 1)));
+            $daysProgress = \max(0, \min(100, \round(($daysUsed / $intervalDays) * 100, 1)));
         }
 
         $expired = ($nextKm && $this->current_km >= $nextKm) || ($nextDate && $now->isAfter($nextDate));
@@ -150,6 +176,43 @@ class Vehicle extends Model
             'days_progress' => $daysProgress,
             'next_km' => $nextKm,
             'next_date' => $nextDate?->format('Y-m-d')
+        ];
+    }
+
+    public function getTireMaintenanceStatusAttribute(): array
+    {
+        $cat = $this->category;
+        if (!$cat) {
+            return [
+                'label'=>'Sem Categoria','color'=>'bg-gray-400','km_progress'=>null,'days_progress'=>null,
+                'next_km'=>null,'next_date'=>null
+            ];
+        }
+        $intervalKm = $cat->tire_change_km ?: null;
+        $intervalDays = $cat->tire_change_days ?: null;
+        $baseKm = $this->tire_service_base_km ?? $this->current_km; // se não definido, começa agora (progress 0)
+        $baseDate = $this->tire_service_base_date ?: ($this->created_at ?? now());
+        $nextKm = $intervalKm ? ($baseKm + $intervalKm) : null;
+        $nextDate = $intervalDays ? (\Carbon\Carbon::parse($baseDate)->copy()->addDays($intervalDays)) : null;
+
+        $kmProgress = null; $daysProgress = null;
+        if ($intervalKm && $nextKm) {
+            $kmUsed = max(0, $this->current_km - $baseKm);
+            $kmProgress = \min(100, \round(($kmUsed / $intervalKm) * 100,1));
+        }
+        if ($intervalDays && $nextDate) {
+            $daysUsed = \Carbon\Carbon::parse($baseDate)->diffInDays(now());
+            $daysProgress = \min(100, \round(($daysUsed / $intervalDays) * 100,1));
+        }
+        $maxProgress = max($kmProgress ?? 0, $daysProgress ?? 0);
+        if ($maxProgress >= 100) { $label='Vencido'; $color='bg-red-600'; }
+        elseif ($maxProgress >= 90) { $label='Crítico'; $color='bg-red-500'; }
+        elseif ($maxProgress >= 75) { $label='Atenção'; $color='bg-yellow-500'; }
+        else { $label='Em Dia'; $color='bg-green-600'; }
+        return [
+            'label'=>$label,'color'=>$color,
+            'km_progress'=>$kmProgress,'days_progress'=>$daysProgress,
+            'next_km'=>$nextKm,'next_date'=>$nextDate?->format('Y-m-d')
         ];
     }
 }

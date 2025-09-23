@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             // Relacionamentos
             $table->foreignId('vehicle_id')->constrained('vehicles')->cascadeOnDelete();
-            $table->foreignId('oil_product_id')->nullable()->constrained('oil_products')->nullOnDelete();
+            // removido foreign constraint direta para oil_products para evitar ordem de migração; será adicionada em migração posterior
+            $table->unsignedBigInteger('oil_product_id')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->comment('Usuário que registrou');
 
             // Dados da troca
@@ -34,6 +35,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
 
             $table->timestamps();
+            $table->index('oil_product_id');
         });
     }
 

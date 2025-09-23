@@ -24,6 +24,15 @@ class Run extends Model
         'destination',
         'stop_point',
         'status',
+        'blocked_at',
+        'blocked_by',
+        'blocked_previous_status'
+    ];
+
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+        'blocked_at' => 'datetime',
     ];
 
     public function vehicle()
@@ -52,5 +61,15 @@ class Run extends Model
     {
         // Uma corrida pode ter vários abastecimentos
         return $this->hasMany(Fueling::class);
+    }
+
+    public function blocker()
+    {
+        return $this->belongsTo(User::class, 'blocked_by');
+    }
+
+    public function isBlocked(): bool
+    {
+        return $this->status === 'blocked';
     }
 }

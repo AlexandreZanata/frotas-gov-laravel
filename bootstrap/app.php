@@ -13,10 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\CheckAdminRole::class,
+            'ack.fines' => \App\Http\Middleware\EnsureAcknowledgedFines::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
-
-

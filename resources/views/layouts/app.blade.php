@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="{ init(){ const t=localStorage.getItem('theme'); if(t==='dark'){ document.documentElement.classList.add('dark'); } } }" x-init="init()">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -48,33 +48,56 @@
 
         @include('layouts.navigation')
 
-        @isset($header)
+        {{-- Header: suporta tanto $header (component) quanto section('header') --}}
+        @if (isset($header) || View::hasSection('header'))
             <header class="bg-white dark:bg-gray-800 shadow">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
+                    @if(View::hasSection('header'))
+                        @yield('header')
+                    @elseif(isset($header))
+                        {{ $header }}
+                    @endif
                 </div>
             </header>
-        @endisset
+        @endif
 
         <main>
-            {{ $slot }}
+            {{-- Conteúdo principal: se existir $slot (uso como componente) usa; caso contrário usa section content --}}
+            @if (isset($slot))
+                {{ $slot }}
+            @else
+                @yield('content')
+            @endif
         </main>
     </div>
 </div>
 
-@isset($scripts)
+{{-- Scripts extras: section ou variável --}}
+@if(View::hasSection('scripts'))
+    @yield('scripts')
+@elseif(isset($scripts))
     {{ $scripts }}
-@endisset
+@endif
 
 <script>
     function layout() {
         return {
             sidebarOpen: window.innerWidth > 768 ? (localStorage.getItem('sidebarOpen') !== 'false') : false,
+            theme: (localStorage.getItem('theme') === 'dark') ? 'dark' : 'light',
             toggleSidebar() {
                 this.sidebarOpen = !this.sidebarOpen;
                 if (window.innerWidth > 768) {
                     localStorage.setItem('sidebarOpen', this.sidebarOpen);
                 }
+            },
+            toggleTheme() {
+                this.theme = this.theme === 'dark' ? 'light' : 'dark';
+                if (this.theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                localStorage.setItem('theme', this.theme);
             }
         }
     }

@@ -1,22 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Histórico do Produto</h2>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Todas as alterações auditadas (criação, edição e exclusão).</p>
-            </div>
-            <div class="flex gap-2 flex-wrap">
-                <a href="{{ route('oil-products.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <i class="fas fa-arrow-left"></i> Voltar
-                </a>
-                <a href="{{ route('oil-products.edit',$product) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium">
-                    <i class="fas fa-edit"></i> Editar
-                </a>
-            </div>
-        </div>
+        <x-page-header title="Histórico do Produto" description="Todas as alterações auditadas (criação, edição e exclusão)." icon="fas fa-clock-rotate-left">
+            <a href="{{ route('oil-products.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+            <a href="{{ route('oil-products.edit',$product) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+        </x-page-header>
     </x-slot>
 
-    <div class="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+    <x-page-container innerClass="space-y-8">
         {{-- Resumo do Produto --}}
         <section class="bg-white dark:bg-gray-800/70 backdrop-blur border border-gray-200 dark:border-gray-700 rounded-lg shadow p-6">
             <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wide">Resumo Atual</h3>
@@ -57,25 +51,18 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($logs as $log)
-                        @php(
-                            $changes = []);
+                        @php($changes = [])
                         @php($new = $log->new_value ?? [])
                         @php($old = $log->old_value ?? [])
                         @if($log->action === 'update')
                             @foreach(($new ?: []) as $k=>$v)
                                 @php($oldVal = $old[$k] ?? null)
-                                @if($oldVal !== $v)
-                                    @php($changes[$k] = ['old'=>$oldVal,'new'=>$v])
-                                @endif
+                                @if($oldVal !== $v) @php($changes[$k] = ['old'=>$oldVal,'new'=>$v]) @endif
                             @endforeach
                         @elseif($log->action === 'create')
-                            @foreach(($new ?: []) as $k=>$v)
-                                @php($changes[$k] = ['old'=>null,'new'=>$v])
-                            @endforeach
+                            @foreach(($new ?: []) as $k=>$v) @php($changes[$k] = ['old'=>null,'new'=>$v]) @endforeach
                         @elseif($log->action === 'delete')
-                            @foreach(($old ?: []) as $k=>$v)
-                                @php($changes[$k] = ['old'=>$v,'new'=>null])
-                            @endforeach
+                            @foreach(($old ?: []) as $k=>$v) @php($changes[$k] = ['old'=>$v,'new'=>null]) @endforeach
                         @endif
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition">
                             <td class="px-4 py-2 text-gray-600 dark:text-gray-300 whitespace-nowrap">{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
@@ -120,5 +107,5 @@
                 <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">{{ $logs->links() }}</div>
             @endif
         </section>
-    </div>
+    </x-page-container>
 </x-app-layout>

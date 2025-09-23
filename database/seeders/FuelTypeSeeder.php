@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\FuelType;
 
 class FuelTypeSeeder extends Seeder
 {
@@ -12,6 +12,9 @@ class FuelTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $types = ['Gasolina','Etanol','Diesel','GNV','Flex','Elétrico'];
+        foreach ($types as $name) {
+            FuelType::firstOrCreate(['name'=>$name]);
+        }
     }
 }

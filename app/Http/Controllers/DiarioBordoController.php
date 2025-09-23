@@ -20,10 +20,13 @@ class DiarioBordoController extends Controller
     public function index()
     {
         $activeRun = Run::where('driver_id', Auth::id())
-            ->whereIn('status', ['in_progress', 'pending_start'])
+            ->whereIn('status', ['in_progress', 'pending_start','blocked'])
             ->first();
 
         if ($activeRun) {
+            if ($activeRun->status === 'blocked') {
+                return view('diario-de-bordo.run-blocked', ['run'=>$activeRun]);
+            }
             if ($activeRun->status === 'pending_start') {
                 return redirect()->route('diario.showStartRunForm', $activeRun);
             }
@@ -38,9 +41,9 @@ class DiarioBordoController extends Controller
      */
     public function showSelectVehicle()
     {
-        $activeRun = Run::where('driver_id', Auth::id())->whereIn('status', ['in_progress', 'pending_start'])->first();
+        $activeRun = Run::where('driver_id', Auth::id())->whereIn('status', ['in_progress', 'pending_start','blocked'])->first();
         if ($activeRun) {
-            return redirect()->route('diario.index')->with('status', 'Você já tem uma corrida em andamento. Finalize-a para iniciar uma nova.');
+            return redirect()->route('diario.index')->with('status', 'Você já tem uma corrida em andamento/bloqueada. Finalize ou aguarde liberação.');
         }
         return view('diario-de-bordo.select-vehicle');
     }
@@ -151,9 +154,9 @@ class DiarioBordoController extends Controller
      */
     public function storeChecklistAndCreateRun(Request $request, Vehicle $vehicle)
     {
-        $activeRun = Run::where('driver_id', Auth::id())->whereIn('status', ['in_progress', 'pending_start'])->first();
+        $activeRun = Run::where('driver_id', Auth::id())->whereIn('status', ['in_progress', 'pending_start','blocked'])->first();
         if ($activeRun) {
-            return redirect()->route('diario.index')->withErrors('Você já tem uma corrida em andamento ou pendente.');
+            return redirect()->route('diario.index')->withErrors('Você já tem uma corrida em andamento, pendente ou bloqueada.');
         }
 
         $validated = $request->validate([
@@ -199,7 +202,11 @@ class DiarioBordoController extends Controller
      */
     public function showStartRunForm(Run $run)
     {
-        if ($run->driver_id !== Auth::id() || $run->status !== 'pending_start') {
+        if ($run->driver_id !== Auth::id()) { abort(403); }
+        if ($run->status === 'blocked') {
+            return view('diario-de-bordo.run-blocked', ['run'=>$run]);
+        }
+        if ($run->status !== 'pending_start') {
             abort(403, 'Acesso não autorizado ou corrida já iniciada.');
         }
 
@@ -221,9 +228,9 @@ class DiarioBordoController extends Controller
      */
     public function startRun(Request $request, Run $run)
     {
-        if ($run->driver_id !== Auth::id() || $run->status !== 'pending_start') {
-            abort(403);
-        }
+        if ($run->driver_id !== Auth::id()) { abort(403); }
+        if ($run->status === 'blocked') { return back()->withErrors('Corrida bloqueada pelo administrador.'); }
+        if ($run->status !== 'pending_start') { abort(403); }
 
         $request->validate([
             'start_km' => 'required|integer|min:0|gte:' . ($run->vehicle->runs()->where('status', 'completed')->latest('end_time')->value('end_km') ?? 0),
@@ -244,7 +251,11 @@ class DiarioBordoController extends Controller
      */
     public function showFinishRun(Run $run)
     {
-        if ($run->driver_id !== Auth::id() || $run->status !== 'in_progress') {
+        if ($run->driver_id !== Auth::id()) { abort(403); }
+        if ($run->status === 'blocked') {
+            return view('diario-de-bordo.run-blocked', ['run'=>$run]);
+        }
+        if ($run->status !== 'in_progress') {
             abort(403, 'Acesso não autorizado ou a corrida não está em andamento.');
         }
 
@@ -259,9 +270,9 @@ class DiarioBordoController extends Controller
      */
     public function updateRun(Request $request, Run $run)
     {
-        if ($run->driver_id !== Auth::id() || $run->status !== 'in_progress') {
-            abort(403);
-        }
+        if ($run->driver_id !== Auth::id()) { abort(403); }
+        if ($run->status === 'blocked') { return back()->withErrors('Corrida bloqueada pelo administrador.'); }
+        if ($run->status !== 'in_progress') { abort(403); }
 
         $validated = $request->validate([
             'end_km' => 'required|integer|gte:' . $run->start_km,

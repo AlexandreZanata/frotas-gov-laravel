@@ -171,12 +171,27 @@ Route::middleware(['auth','ack.fines'])->group(function () {
     Route::get('/api/chat/conversations', [\App\Http\Controllers\ChatController::class,'list'])->name('api.chat.conversations');
     Route::post('/api/chat/conversations', [\App\Http\Controllers\ChatController::class,'store'])->name('api.chat.conversations.store');
     Route::post('/api/chat/conversations/{conversation}/invite', [\App\Http\Controllers\ChatController::class,'invite'])->name('api.chat.conversations.invite');
-    Route::post('/api/chat/conversations/{conversation}/accept', [\App\Http\Controllers\ChatController::class,'accept'])->name('api.chat.conversations.accept');
-    Route::post('/api/chat/conversations/{conversation}/decline', [\App\Http\Controllers\ChatController::class,'decline'])->name('api.chat.conversations.decline');
     Route::post('/api/chat/conversations/{conversation}/leave', [\App\Http\Controllers\ChatController::class,'leave'])->name('api.chat.conversations.leave');
     Route::get('/api/chat/conversations/{conversation}/messages', [\App\Http\Controllers\ChatController::class,'messages'])->name('api.chat.conversations.messages');
     Route::post('/api/chat/messages', [\App\Http\Controllers\ChatController::class,'send'])->name('api.chat.messages.send');
     Route::post('/api/chat/messages/{message}/read', [\App\Http\Controllers\ChatController::class,'read'])->name('api.chat.messages.read');
+    Route::get('/api/chat/users/search', [\App\Http\Controllers\ChatController::class,'searchUsers'])->name('api.chat.users.search');
+    Route::get('/api/chat/conversations/{conversation}/updates', [\App\Http\Controllers\ChatController::class,'updates'])->name('api.chat.conversations.updates');
+    // Rotas adicionais do chat
+    Route::get('/api/chat/users/all', [\App\Http\Controllers\ChatController::class,'allUsers'])->name('api.chat.users.all');
+    Route::post('/api/chat/direct/{user}', [\App\Http\Controllers\ChatController::class,'direct'])->name('api.chat.direct');
+    Route::post('/api/chat/conversations/{conversation}/typing', [\App\Http\Controllers\ChatController::class,'typing'])->name('api.chat.conversations.typing');
+    // Templates
+    Route::get('/api/chat/templates', [\App\Http\Controllers\ChatController::class,'templates'])->name('api.chat.templates');
+    Route::post('/api/chat/templates', [\App\Http\Controllers\ChatController::class,'templateStore'])->name('api.chat.templates.store');
+    Route::put('/api/chat/templates/{template}', [\App\Http\Controllers\ChatController::class,'templateUpdate'])->name('api.chat.templates.update');
+    Route::delete('/api/chat/templates/{template}', [\App\Http\Controllers\ChatController::class,'templateDelete'])->name('api.chat.templates.delete');
+    Route::get('/api/chat/unread/summary', [\App\Http\Controllers\ChatController::class,'unreadSummary'])->name('api.chat.unread.summary');
+
+    // Mensagens automáticas (broadcast)
+    Route::get('/chat/broadcast', [\App\Http\Controllers\ChatBroadcastController::class,'index'])->name('chat.broadcast');
+    Route::post('/api/chat/broadcast/send', [\App\Http\Controllers\ChatBroadcastController::class,'send'])->name('api.chat.broadcast.send');
+    Route::get('/api/chat/broadcast/search-users', [\App\Http\Controllers\ChatBroadcastController::class,'searchUsers'])->name('api.chat.broadcast.search-users');
 });
 
 // Rotas Públicas de Verificação de Autenticidade de Multa

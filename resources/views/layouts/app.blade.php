@@ -72,6 +72,17 @@
     </div>
 </div>
 
+@if(!request()->routeIs('chat.index'))
+<div x-data="chatFab()" x-init="init()" x-cloak class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
+    <button @click="goChat()" class="relative flex items-center justify-center rounded-full shadow-lg ring-2 ring-white/40 dark:ring-gray-900/40 transition focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-700"
+        :class="isMobile ? 'w-11 h-11 bg-blue-600 text-white shadow-md' : 'w-14 h-14 bg-blue-600 text-white'" aria-label="Abrir Chat">
+        <i class="fas fa-comments text-lg sm:text-xl"></i>
+        <span x-show="unread>0" class="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1" x-text="unreadDisplay"></span>
+        <span class="sr-only" x-text="unread>0 ? (unread+' mensagens não lidas') : 'Sem novas mensagens'"></span>
+    </button>
+</div>
+@endif
+
 {{-- Scripts extras: section ou variável --}}
 @if(View::hasSection('scripts'))
     @yield('scripts')
@@ -79,6 +90,9 @@
     {{ $scripts }}
 @endif
 
+@if(auth()->check())
+<script>window.APP_USER_ID={{ auth()->id() }};</script>
+@endif
 <script>
     function layout() {
         return {
@@ -98,6 +112,38 @@
                     document.documentElement.classList.remove('dark');
                 }
                 localStorage.setItem('theme', this.theme);
+            }
+        }
+    }
+    function chatFab(){
+        return {
+            unread:0, unreadDisplay:0, timer:null, isMobile:false, echoBound:false,
+            init(){
+                this.isMobile=window.innerWidth<640; this.fetchUnread(); this.timer=setInterval(()=>this.fetchUnread(),30000);
+                window.addEventListener('resize',()=>{ this.isMobile=window.innerWidth<640; });
+                this.bindEcho();
+            },
+            bindEcho(){
+                if(this.echoBound || !window.Echo || !window.APP_USER_ID) return; this.echoBound=true;
+                window.Echo.private('chat.unread.'+window.APP_USER_ID)
+                    .listen('ChatUnreadPing', (e)=>{ this.fetchUnread(true,e); });
+            },
+            fetchUnread(immediate=false,eventData=null){
+                fetch('{{ route('api.chat.unread.summary') }}')
+                    .then(r=>r.json())
+                    .then(j=>{ this.unread=j.total||0; this.unreadDisplay=this.unread>99?'99+':this.unread; if(eventData){ this.maybeBeep(eventData); } })
+                    .catch(()=>{});
+            },
+            goChat(){ window.location='{{ route('chat.index') }}'; },
+            maybeBeep(e){
+                try {
+                    const muted = JSON.parse(localStorage.getItem('chat.muted')||'[]');
+                    if(muted.includes(e.conversation_id)) return; // conversa mutada
+                    // gerar beep simples
+                    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+                    const o = ctx.createOscillator(); const g=ctx.createGain();
+                    o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(ctx.destination); g.gain.setValueAtTime(0.001,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.2,ctx.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.4); o.start(); o.stop(ctx.currentTime+0.42);
+                } catch(err){ /* ignore */ }
             }
         }
     }

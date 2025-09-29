@@ -36,9 +36,9 @@
         </a>
 
         @if(auth()->user() && auth()->user()->role_id <= 2)
-            <div x-data="{ open: {{ request()->routeIs('vehicles.*') || request()->routeIs('vehicle-categories.*') || request()->routeIs('vehicles.blocking') ? 'true' : 'false' }} }" class="">
+            <div x-data="{ open: {{ request()->routeIs('vehicles.index', 'vehicles.create', 'vehicles.edit', 'vehicles.blocking', 'vehicle-categories.*') ? 'true' : 'false' }} }" class="">
                 <button @click="open = !open"
-                        class="w-full flex justify-between items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none {{ request()->routeIs('vehicles.*') || request()->routeIs('vehicle-categories') || request()->routeIs('vehicles.blocking') ? 'bg-gray-200 dark:bg-gray-700' : '' }}">
+                        class="w-full flex justify-between items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none {{ request()->routeIs('vehicles.index', 'vehicles.create', 'vehicles.edit', 'vehicles.blocking', 'vehicle-categories.*') ? 'bg-gray-200 dark:bg-gray-700' : '' }}">
                     <div class="flex items-center">
                         <i class="fas fa-car w-6"></i>
                         <span class="mx-3">Veículos</span>
@@ -169,6 +169,35 @@
                 @endif
             </div>
         </div>
+
+        <!-- Bloco de Transferência de Veículos -->
+        <!-- Bloco de Transferência de Veículos -->
+        <div x-data="{ open: {{ request()->routeIs('vehicles.transfers.*') ? 'true' : 'false' }} }">
+            <button @click="open = !open"
+                    class="w-full flex justify-between items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none {{ request()->routeIs('vehicles.transfers.*') ? 'bg-gray-200 dark:bg-gray-700' : '' }}">
+                <div class="flex items-center">
+                    <i class="fas fa-exchange-alt w-6"></i>
+                    <span class="mx-3">Transferências</span>
+                </div>
+                <span>
+            <i class="fas" :class="{ 'fa-chevron-down': !open, 'fa-chevron-up': open }"></i>
+        </span>
+            </button>
+            <div x-show="open" x-transition class="bg-gray-100 dark:bg-gray-900">
+                <a href="{{ route('vehicles.transfers.create') }}"
+                   class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicles.transfers.create') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">
+                    Solicitar Transferência
+                </a>
+                @if(auth()->user()->role_id <= 2)
+                    <a href="{{ route('vehicles.transfers.index') }}"
+                       class="py-2 px-12 block text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 {{ request()->routeIs('vehicles.transfers.index') ? 'bg-gray-300 dark:bg-gray-600' : '' }}">
+                        Listar Solicitações
+                    </a>
+                @endif
+            </div>
+        </div>
+        <!-- Fim do Bloco de Transferência -->
+        <!-- Fim do Bloco de Transferência -->
 
         <a href="{{ route('chat.index') }}" class="flex items-center py-2 px-6 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 {{ request()->routeIs('chat.index') ? 'bg-gray-200 dark:bg-gray-700' : '' }}">
             <i class="fas fa-comments w-6"></i>

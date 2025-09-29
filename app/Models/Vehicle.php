@@ -51,7 +51,7 @@ class Vehicle extends Model
     }
 
     /**
-     * Get the current secretariat associated with the vehicle.
+     * Get the secretariat associated with the vehicle.
      */
     public function secretariat()
     {
@@ -59,7 +59,7 @@ class Vehicle extends Model
     }
 
     /**
-     * Get the current department associated with the vehicle.
+     * Get the department associated with the vehicle.
      */
     public function department()
     {

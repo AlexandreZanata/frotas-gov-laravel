@@ -1,9 +1,9 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\{Fueling, FuelType, Vehicle};
+use App\Models\PdfTemplate;
 use Illuminate\Http\Request;
-use App\Models\{Fueling, Vehicle, FuelType, GasStation, PdfTemplate};
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FuelConsumptionReportController extends Controller

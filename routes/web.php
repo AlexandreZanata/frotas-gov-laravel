@@ -22,7 +22,8 @@ use App\Http\Controllers\{
     TireController,
     FineController,
     FuelPriceSurveyController,
-    VehicleBlockController
+    VehicleBlockController,
+    VehicleTransferController
 };
 
 /*
@@ -69,6 +70,19 @@ Route::middleware(['auth','ack.fines'])->group(function () {
         Route::patch('/{run}/finalizar', 'updateRun')->name('updateRun');
     });
 
+    // ROTAS PARA TRANSFERÊNCIA DE VEÍCULOS
+    Route::prefix('vehicles/transfers')->name('vehicles.transfers.')->group(function () {
+        Route::get('/', [VehicleTransferController::class, 'index'])->name('index');
+        Route::get('/create', [VehicleTransferController::class, 'create'])->name('create');
+        Route::post('/', [VehicleTransferController::class, 'store'])->name('store');
+        Route::post('/{transfer}/approve', [VehicleTransferController::class, 'approve'])->name('approve')->middleware('can:manage-transfer,transfer');
+        Route::post('/{transfer}/reject', [VehicleTransferController::class, 'reject'])->name('reject')->middleware('can:manage-transfer,transfer');
+        Route::get('/history', [VehicleTransferController::class, 'history'])->name('history');
+
+        // ROTA PARA BUSCA DE VEÍCULO (AJAX)
+        Route::post('/search', [VehicleTransferController::class, 'searchVehicle'])->name('search');
+    });
+
     // Rota de busca de veículos (JSON) usada pela página de seleção
     Route::get('/api/vehicles/search', [DiarioBordoController::class, 'searchVehicles'])->name('api.vehicles.search');
 
@@ -79,10 +93,20 @@ Route::middleware(['auth','ack.fines'])->group(function () {
         Route::post('/fuel/pdf', [\App\Http\Controllers\FuelConsumptionReportController::class,'pdf'])->name('fuel.pdf');
     });
 
-    // Grupo de rotas para Modelos de PDF
-    Route::resource('pdf-templates', PdfTemplateController::class);
-    Route::get('pdf-templates/{pdfTemplate}/preview', [PdfTemplateController::class, 'preview'])->name('pdf-templates.preview');
-    Route::post('pdf-templates/ajax-preview', [PdfTemplateController::class, 'ajaxPreview'])->name('pdf-templates.ajax-preview');
+    // --- ROTAS PARA MODELOS DE PDF ---
+    Route::prefix('pdf-templates')->name('pdf-templates.')->group(function () {
+        Route::get('/', [PdfTemplateController::class, 'index'])->name('index');
+        Route::get('/create', [PdfTemplateController::class, 'create'])->name('create');
+        Route::post('/', [PdfTemplateController::class, 'store'])->name('store');
+        Route::get('/{pdfTemplate}/edit', [PdfTemplateController::class, 'edit'])->name('edit');
+        Route::put('/{pdfTemplate}', [PdfTemplateController::class, 'update'])->name('update');
+        Route::delete('/{pdfTemplate}', [PdfTemplateController::class, 'destroy'])->name('destroy');
+        Route::get('/{pdfTemplate}/preview', [PdfTemplateController::class, 'preview'])->name('preview');
+
+        // Rotas AJAX para Preview
+        Route::post('/ajax-preview/store', [PdfTemplateController::class, 'ajaxStorePreview'])->name('ajax-preview.store');
+        Route::post('/ajax-preview/{pdfTemplate}/update', [PdfTemplateController::class, 'ajaxUpdatePreview'])->name('ajax-preview.update');
+    });
 
     // Rotas de Recursos e Cadastros Gerais
     Route::get('/secretarias', [SecretariatController::class, 'index'])->name('secretariats.index');
